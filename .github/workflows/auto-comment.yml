@@ -1,0 +1,30 @@
+name: Auto Comment and Close Issues
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  auto-comment-close:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add thank you comment and close issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const labels = context.payload.issue.labels.map(label => label.name);
+            if (labels.includes('feedback') || labels.includes('suggestion')) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: 'Thank you for your contribution!'
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed'
+              });
+            }
